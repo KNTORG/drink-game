@@ -644,20 +644,20 @@
         function getResult(sum, d1, d2) {
             if (d1 === d2) {
                 if (d1 === 4 && fourPlusFourMode === 'B') {
-                    return { type: 'red', text: 'คนขวาดื่ม! 🍺' };
+                    return { type: 'red', outcome: 'right', text: 'คนขวาดื่ม! 🍺' };
                 }
-                return { type: 'gold', text: 'ชี้ได้เลย! ☝️' };
+                return { type: 'gold', outcome: 'point', text: 'ชี้ได้เลย! ☝️' };
             }
             if (sum === 7) {
-                return { type: 'red', text: '👈 คนซ้ายดื่ม! 🍺' };
+                return { type: 'red', outcome: 'left', text: '👈 คนซ้ายดื่ม! 🍺' };
             }
             if (sum === 8) {
-                return { type: 'red', text: '👉 คนขวาดื่ม! 🍺' };
+                return { type: 'red', outcome: 'right', text: '👉 คนขวาดื่ม! 🍺' };
             }
             if (sum === 9) {
-                return { type: 'red', text: '🤚 คนทอยดื่มเอง! 🍺' };
+                return { type: 'red', outcome: 'self', text: '🤚 คนทอยดื่มเอง! 🍺' };
             }
-            return { type: 'none', text: 'ไม่มีใครดื่ม 😮‍💨' };
+            return { type: 'none', outcome: 'none', text: 'ไม่มีใครดื่ม 😮‍💨' };
         }
 
         function showFlash(type) {
@@ -716,14 +716,11 @@
             renderHistory();
         }
 
+        const outcomeEmoji = { left: '👈', right: '👉', self: '🤚', point: '☝️', none: '😮‍💨' };
+
         function renderHistory() {
             historyList.innerHTML = history.map(entry => {
-                let resultShort = '';
-                if (entry.result.includes('ซ้าย')) resultShort = '👈';
-                else if (entry.result.includes('ขวา')) resultShort = '👉';
-                else if (entry.result.includes('ทอยดื่ม')) resultShort = '🤚';
-                else if (entry.result.includes('ชี้')) resultShort = '☝️';
-                else resultShort = '😮‍💨';
+                const resultShort = outcomeEmoji[entry.result] ?? '❓';
 
                 return `<div class="history-entry">
                     <div class="history-dice">${miniDiceFace(entry.d1)}${miniDiceFace(entry.d2)}</div>
@@ -767,7 +764,7 @@
                         showFlash(result.type);
                     }
 
-                    updateHistory(sum, result.text, d1, d2);
+                    updateHistory(sum, result.outcome, d1, d2);
 
                     isRolling = false;
                     rollBtn.disabled = false;
