@@ -29,6 +29,7 @@
             display: flex;
             flex-direction: column;
             position: relative;
+            padding-right: 120px;
         }
 
         @keyframes gradientShift {
@@ -349,21 +350,26 @@
         }
 
         .history-section {
-            height: 120px;
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 120px;
+            height: 100%;
             background: rgba(0,0,0,0.3);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
-            border-top: 1px solid rgba(255,255,255,0.2);
-            padding: 10px 15px;
+            border-left: 1px solid rgba(255,255,255,0.2);
+            padding: 70px 10px 10px;
             overflow-y: auto;
+            z-index: 15;
         }
 
         .tap-anywhere {
             position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: calc(100% - 120px);
+            width: calc(100% - 120px);
+            height: 100%;
             z-index: 10;
             cursor: pointer;
         }
@@ -377,24 +383,57 @@
             z-index: 20;
         }
 
-        .history-section {
-            position: relative;
-            z-index: 20;
-        }
-
         .history-title {
             font-size: 14px;
+            font-weight: bold;
+            color: gold;
             opacity: 0.7;
+            margin-top: 8px;
             margin-bottom: 8px;
             position: sticky;
+            text-align: center;
             top: 0;
         }
 
         .history-entry {
-            font-size: 15px;
-            padding: 6px 0;
+            padding: 8px 0;
             border-bottom: 1px solid rgba(255,255,255,0.1);
             animation: fadeIn 0.3s ease;
+        }
+
+        .history-dice {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+            margin-bottom: 4px;
+        }
+
+        .mini-dice {
+            width: 28px;
+            height: 28px;
+            background: white;
+            border-radius: 4px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            padding: 3px;
+            gap: 1px;
+            flex-shrink: 0;
+        }
+
+        .mini-pip {
+            background: #1a1a1a;
+            border-radius: 50%;
+        }
+
+        .mini-pip.empty {
+            background: transparent;
+        }
+
+        .history-result {
+            font-size: 13px;
+            text-align: center;
+            opacity: 0.85;
         }
 
         @keyframes fadeIn {
@@ -525,7 +564,7 @@
     <button class="roll-btn" id="rollBtn">ทอยเต๋า 🎲</button>
 
     <div class="history-section" id="historySection">
-        <div class="history-title">ประวัติ (15 รายการล่าสุด)</div>
+        <div class="history-title">15 ครั้ง</div>
         <div id="historyList"></div>
     </div>
 
@@ -654,10 +693,18 @@
             }
         }
 
-        function updateHistory(sum, result) {
+        function miniDiceFace(n) {
+            return '<div class="mini-dice">' +
+                pipLayouts[n].map(on => `<div class="mini-pip${on ? '' : ' empty'}"></div>`).join('') +
+                '</div>';
+        }
+
+        function updateHistory(sum, result, d1, d2) {
             const entry = {
                 sum: sum,
                 result: result,
+                d1: d1,
+                d2: d2,
                 timestamp: Date.now()
             };
             
@@ -677,8 +724,11 @@
                 else if (entry.result.includes('ทอยดื่ม')) resultShort = 'ทอยดื่ม';
                 else if (entry.result.includes('ชี้')) resultShort = 'ชี้ได้';
                 else resultShort = 'ไม่ดื่ม';
-                
-                return `<div class="history-entry">🎲 ${entry.sum} → ${resultShort}</div>`;
+
+                return `<div class="history-entry">
+                    <div class="history-dice">${miniDiceFace(entry.d1)}${miniDiceFace(entry.d2)}</div>
+                    <div class="history-result">${resultShort}</div>
+                </div>`;
             }).join('');
         }
 
@@ -717,7 +767,7 @@
                         showFlash(result.type);
                     }
 
-                    updateHistory(sum, result.text);
+                    updateHistory(sum, result.text, d1, d2);
 
                     isRolling = false;
                     rollBtn.disabled = false;
