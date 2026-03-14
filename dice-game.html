@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>ทอยเต๋า 🍺</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        html, body {
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f953c6 0%, #b91d73 50%, #f7971e 100%);
+            background-size: 200% 200%;
+            animation: gradientShift 8s ease infinite;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        @keyframes gradientShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+
+        .settings-btn {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            border: 2px solid rgba(255,255,255,0.4);
+            color: white;
+            font-size: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            transition: transform 0.2s, background 0.2s;
+        }
+
+        .settings-btn:active {
+            transform: scale(0.95);
+            background: rgba(255,255,255,0.3);
+        }
+
+        .settings-panel {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 280px;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            z-index: 200;
+            padding: 80px 20px 20px;
+            transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .settings-panel.open {
+            right: 0;
+        }
+
+        .settings-panel h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            opacity: 0.8;
+        }
+
+        .toggle-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toggle-option {
+            padding: 14px 18px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            border: 2px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 16px;
+        }
+
+        .toggle-option.selected {
+            border-color: #4ade80;
+            background: rgba(74, 222, 128, 0.2);
+        }
+
+        .clear-btn {
+            padding: 16px;
+            border-radius: 12px;
+            background: rgba(239, 68, 68, 0.3);
+            border: 2px solid rgba(239, 68, 68, 0.6);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-top: auto;
+        }
+
+        .clear-btn:active {
+            background: rgba(239, 68, 68, 0.5);
+        }
+
+        .close-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            color: white;
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .dice-area {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            perspective: 800px;
+            padding: 20px;
+            min-height: 0;
+        }
+
+        .dice-container {
+            width: 100px;
+            height: 100px;
+            perspective: 600px;
+            position: relative;
+        }
+
+        .dice {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .dice.rolling {
+            animation: roll 1.2s cubic-bezier(0.25, 0.1, 0.25, 1);
+        }
+
+        @keyframes roll {
+            0% { transform: rotateX(0deg) rotateY(0deg) rotateZ(0deg); }
+            20% { transform: rotateX(720deg) rotateY(360deg) rotateZ(180deg); }
+            40% { transform: rotateX(1080deg) rotateY(720deg) rotateZ(540deg); }
+            60% { transform: rotateX(1440deg) rotateY(900deg) rotateZ(720deg); }
+            80% { transform: rotateX(1800deg) rotateY(1080deg) rotateZ(900deg); }
+            100% { transform: rotateX(1980deg) rotateY(1170deg) rotateZ(1080deg); }
+        }
+
+        .dice-face {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 12px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            padding: 10px;
+            gap: 4px;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+        }
+
+        .pip {
+            width: 100%;
+            height: 100%;
+            background: #1a1a1a;
+            border-radius: 50%;
+            align-self: center;
+            justify-self: center;
+        }
+
+        .pip.empty {
+            background: transparent;
+        }
+
+        .face-1 { transform: translateZ(50px); }
+        .face-2 { transform: rotateY(-90deg) translateZ(50px); }
+        .face-3 { transform: rotateX(-90deg) translateZ(50px); }
+        .face-4 { transform: rotateX(90deg) translateZ(50px); }
+        .face-5 { transform: rotateY(90deg) translateZ(50px); }
+        .face-6 { transform: rotateY(180deg) translateZ(50px); }
+
+        .result-area {
+            text-align: center;
+            padding: 10px 20px;
+            min-height: 100px;
+        }
+
+        .sum-display {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 8px;
+            opacity: 0;
+            transform: scale(0.5);
+            transition: all 0.3s;
+        }
+
+        .sum-display.show {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .sum-display.animate {
+            animation: sumPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes sumPop {
+            0% { transform: scale(0.5); }
+            70% { transform: scale(1.3); }
+            100% { transform: scale(1); }
+        }
+
+        .result-text {
+            font-size: 36px;
+            font-weight: bold;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s;
+        }
+
+        .result-text.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .flash-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 50;
+            transition: opacity 0.15s;
+        }
+
+        .flash-overlay.red {
+            background: rgba(220, 38, 38, 0.7);
+        }
+
+        .flash-overlay.gold {
+            background: rgba(234, 179, 8, 0.7);
+        }
+
+        .flash-overlay.active {
+            opacity: 1;
+        }
+
+        .confetti-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 60;
+            overflow: hidden;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            opacity: 0;
+        }
+
+        .confetti.active {
+            animation: confettiFall 2s ease-out forwards;
+        }
+
+        @keyframes confettiFall {
+            0% {
+                opacity: 1;
+                transform: translateY(-20px) rotate(0deg);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(100vh) rotate(720deg);
+            }
+        }
+
+        .roll-btn {
+            width: 80%;
+            max-width: 300px;
+            height: 70px;
+            margin: 10px auto;
+            border-radius: 35px;
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            border: none;
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(34, 197, 94, 0.5);
+            transition: transform 0.15s, box-shadow 0.15s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .roll-btn:active {
+            transform: scale(0.95);
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.4);
+        }
+
+        .roll-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .history-section {
+            height: 120px;
+            background: rgba(0,0,0,0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-top: 1px solid rgba(255,255,255,0.2);
+            padding: 10px 15px;
+            overflow-y: auto;
+        }
+
+        .tap-anywhere {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 120px);
+            z-index: 10;
+            cursor: pointer;
+        }
+
+        .tap-anywhere:active {
+            background: rgba(255,255,255,0.05);
+        }
+
+        .roll-btn {
+            position: relative;
+            z-index: 20;
+        }
+
+        .history-section {
+            position: relative;
+            z-index: 20;
+        }
+
+        .history-title {
+            font-size: 14px;
+            opacity: 0.7;
+            margin-bottom: 8px;
+            position: sticky;
+            top: 0;
+        }
+
+        .history-entry {
+            font-size: 15px;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .overlay-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 150;
+            transition: opacity 0.3s;
+        }
+
+        .overlay-bg.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body>
+    <button class="settings-btn" id="settingsBtn">⚙️</button>
+    <div class="tap-anywhere" id="tapAnywhere"></div>
+
+    <div class="settings-panel" id="settingsPanel">
+        <button class="close-btn" id="closeSettings">✕</button>
+        
+        <div>
+            <h3>กติกา 4+4</h3>
+            <div class="toggle-container">
+                <div class="toggle-option selected" data-mode="A" id="modeA">
+                    ☝️ ชี้คนอื่น
+                </div>
+                <div class="toggle-option" data-mode="B" id="modeB">
+                    🍺 คนขวาดื่ม
+                </div>
+            </div>
+        </div>
+
+        <button class="clear-btn" id="clearHistory">🗑️ ล้างประวัติ</button>
+    </div>
+
+    <div class="overlay-bg" id="overlayBg"></div>
+
+    <div class="dice-area" id="diceArea">
+        <div class="dice-container">
+            <div class="dice" id="dice1">
+                <div class="dice-face face-1">
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip pip-center"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                </div>
+                <div class="dice-face face-2">
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip empty"></div><div class="pip empty"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                </div>
+                <div class="dice-face face-3">
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                </div>
+                <div class="dice-face face-4">
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                </div>
+                <div class="dice-face face-5">
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                </div>
+                <div class="dice-face face-6">
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="dice-container">
+            <div class="dice" id="dice2">
+                <div class="dice-face face-1">
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip pip-center"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                </div>
+                <div class="dice-face face-2">
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip empty"></div><div class="pip empty"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                </div>
+                <div class="dice-face face-3">
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                </div>
+                <div class="dice-face face-4">
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                </div>
+                <div class="dice-face face-5">
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                </div>
+                <div class="dice-face face-6">
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                    <div class="pip"></div><div class="pip"></div><div class="pip"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="result-area">
+        <div class="sum-display" id="sumDisplay"></div>
+        <div class="result-text" id="resultText"></div>
+    </div>
+
+    <button class="roll-btn" id="rollBtn">ทอยเต๋า 🎲</button>
+
+    <div class="history-section" id="historySection">
+        <div class="history-title">ประวัติ (15 รายการล่าสุด)</div>
+        <div id="historyList"></div>
+    </div>
+
+    <div class="flash-overlay red" id="redFlash"></div>
+    <div class="flash-overlay gold" id="goldFlash"></div>
+    <div class="confetti-container" id="confettiContainer"></div>
+
+    <script>
+        const pipLayouts = {
+            1: [0,0,0, 0,1,0, 0,0,0],
+            2: [1,0,0, 0,0,0, 0,0,1],
+            3: [1,0,0, 0,1,0, 0,0,1],
+            4: [1,0,1, 0,0,0, 1,0,1],
+            5: [1,0,1, 0,1,0, 1,0,1],
+            6: [1,0,1, 1,0,1, 1,0,1]
+        };
+
+        const faceRotations = {
+            1: { rotateX: 0, rotateY: 0 },
+            2: { rotateX: 0, rotateY: 90 },
+            3: { rotateX: 90, rotateY: 0 },
+            4: { rotateX: -90, rotateY: 0 },
+            5: { rotateX: 0, rotateY: -90 },
+            6: { rotateX: 0, rotateY: 180 }
+        };
+
+        let fourPlusFourMode = 'A';
+        let history = [];
+        let isRolling = false;
+
+        const dice1 = document.getElementById('dice1');
+        const dice2 = document.getElementById('dice2');
+        const rollBtn = document.getElementById('rollBtn');
+        const sumDisplay = document.getElementById('sumDisplay');
+        const resultText = document.getElementById('resultText');
+        const redFlash = document.getElementById('redFlash');
+        const goldFlash = document.getElementById('goldFlash');
+        const confettiContainer = document.getElementById('confettiContainer');
+        const settingsBtn = document.getElementById('settingsBtn');
+        const settingsPanel = document.getElementById('settingsPanel');
+        const closeSettings = document.getElementById('closeSettings');
+        const overlayBg = document.getElementById('overlayBg');
+        const modeA = document.getElementById('modeA');
+        const modeB = document.getElementById('modeB');
+        const clearHistory = document.getElementById('clearHistory');
+        const historyList = document.getElementById('historyList');
+
+        function setPipLayout(diceFace, number) {
+            const layout = pipLayouts[number];
+            const pips = diceFace.querySelectorAll('.pip');
+            pips.forEach((pip, i) => {
+                if (layout[i] === 1) {
+                    pip.classList.remove('empty');
+                } else {
+                    pip.classList.add('empty');
+                }
+            });
+        }
+
+        function initDice() {
+            const faces1 = dice1.querySelectorAll('.dice-face');
+            const faces2 = dice2.querySelectorAll('.dice-face');
+            
+            faces1.forEach((face, i) => {
+                setPipLayout(face, i + 1);
+            });
+            faces2.forEach((face, i) => {
+                setPipLayout(face, i + 1);
+            });
+        }
+
+        function setDiceRotation(dice, number) {
+            const rotation = faceRotations[number];
+            dice.style.transform = `rotateX(${rotation.rotateX}deg) rotateY(${rotation.rotateY}deg)`;
+        }
+
+        function getResult(sum, d1, d2) {
+            if (d1 === d2) {
+                if (d1 === 4 && fourPlusFourMode === 'B') {
+                    return { type: 'red', text: 'คนขวาดื่ม! 🍺' };
+                }
+                return { type: 'gold', text: 'ชี้ได้เลย! ☝️' };
+            }
+            if (sum === 7) {
+                return { type: 'red', text: 'คนซ้ายดื่ม! 🍺' };
+            }
+            if (sum === 8) {
+                return { type: 'red', text: 'คนขวาดื่ม! 🍺' };
+            }
+            if (sum === 9) {
+                return { type: 'red', text: 'คนทอยดื่มเอง! 🍺' };
+            }
+            return { type: 'none', text: 'ไม่มีใครดื่ม 😮‍💨' };
+        }
+
+        function showFlash(type) {
+            if (type === 'red') {
+                redFlash.classList.add('active');
+                setTimeout(() => redFlash.classList.remove('active'), 400);
+            } else if (type === 'gold') {
+                goldFlash.classList.add('active');
+                setTimeout(() => goldFlash.classList.remove('active'), 400);
+                showConfetti();
+            }
+        }
+
+        function showConfetti() {
+            const colors = ['#ef4444', '#f97316', '#eab308', '#22c55e', '#3b82f6', '#8b5cf6', '#ec4899'];
+            
+            for (let i = 0; i < 20; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.top = '-20px';
+                confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                confetti.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+                confetti.style.animationDelay = Math.random() * 0.3 + 's';
+                confetti.style.animationDuration = (1.5 + Math.random()) + 's';
+                confettiContainer.appendChild(confetti);
+                
+                setTimeout(() => confetti.classList.add('active'), 10);
+                
+                setTimeout(() => {
+                    confetti.remove();
+                }, 3000);
+            }
+        }
+
+        function updateHistory(sum, result) {
+            const entry = {
+                sum: sum,
+                result: result,
+                timestamp: Date.now()
+            };
+            
+            history.unshift(entry);
+            if (history.length > 15) {
+                history = history.slice(0, 15);
+            }
+            
+            renderHistory();
+        }
+
+        function renderHistory() {
+            historyList.innerHTML = history.map(entry => {
+                let resultShort = '';
+                if (entry.result.includes('ซ้าย')) resultShort = 'ซ้ายดื่ม';
+                else if (entry.result.includes('ขวา')) resultShort = 'ขวาดื่ม';
+                else if (entry.result.includes('ทอยดื่ม')) resultShort = 'ทอยดื่ม';
+                else if (entry.result.includes('ชี้')) resultShort = 'ชี้ได้';
+                else resultShort = 'ไม่ดื่ม';
+                
+                return `<div class="history-entry">🎲 ${entry.sum} → ${resultShort}</div>`;
+            }).join('');
+        }
+
+        function roll() {
+            if (isRolling) return;
+            isRolling = true;
+            rollBtn.disabled = true;
+
+            sumDisplay.classList.remove('show', 'animate');
+            resultText.classList.remove('show');
+
+            dice1.classList.add('rolling');
+            dice2.classList.add('rolling');
+
+            setTimeout(() => {
+                const d1 = Math.floor(Math.random() * 6) + 1;
+                const d2 = Math.floor(Math.random() * 6) + 1;
+                const sum = d1 + d2;
+
+                dice1.classList.remove('rolling');
+                dice2.classList.remove('rolling');
+
+                setDiceRotation(dice1, d1);
+                setDiceRotation(dice2, d2);
+
+                setTimeout(() => {
+                    const result = getResult(sum, d1, d2);
+                    
+                    sumDisplay.textContent = `${d1} + ${d2} = ${sum}`;
+                    resultText.textContent = result.text;
+                    
+                    sumDisplay.classList.add('show', 'animate');
+                    resultText.classList.add('show');
+
+                    if (result.type !== 'none') {
+                        showFlash(result.type);
+                    }
+
+                    updateHistory(sum, result.text);
+
+                    isRolling = false;
+                    rollBtn.disabled = false;
+                }, 100);
+            }, 1200);
+        }
+
+        settingsBtn.addEventListener('click', () => {
+            settingsPanel.classList.add('open');
+            overlayBg.classList.add('active');
+        });
+
+        closeSettings.addEventListener('click', () => {
+            settingsPanel.classList.remove('open');
+            overlayBg.classList.remove('active');
+        });
+
+        overlayBg.addEventListener('click', () => {
+            settingsPanel.classList.remove('open');
+            overlayBg.classList.remove('active');
+        });
+
+        modeA.addEventListener('click', () => {
+            fourPlusFourMode = 'A';
+            modeA.classList.add('selected');
+            modeB.classList.remove('selected');
+        });
+
+        modeB.addEventListener('click', () => {
+            fourPlusFourMode = 'B';
+            modeB.classList.add('selected');
+            modeA.classList.remove('selected');
+        });
+
+        clearHistory.addEventListener('click', () => {
+            history = [];
+            renderHistory();
+        });
+
+        rollBtn.addEventListener('click', roll);
+
+        const tapAnywhere = document.getElementById('tapAnywhere');
+        
+        function handleTap(e) {
+            if (isRolling) return;
+            if (settingsPanel.classList.contains('open')) return;
+            if (e.target.closest('.settings-btn') || 
+                e.target.closest('.settings-panel') || 
+                e.target.closest('.roll-btn')) return;
+            roll();
+        }
+
+        tapAnywhere.addEventListener('click', handleTap);
+        tapAnywhere.addEventListener('touchend', (e) => {
+            e.preventDefault();
+            handleTap(e);
+        });
+
+        initDice();
+        setDiceRotation(dice1, 1);
+        setDiceRotation(dice2, 1);
+    </script>
+</body>
+</html>
